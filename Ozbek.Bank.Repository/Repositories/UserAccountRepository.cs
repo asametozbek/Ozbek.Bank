@@ -14,19 +14,19 @@ namespace Ozbek.Bank.Repository.Repositories
     public class UserAccountRepository : GenericRepository<UserAccount>, IUserAccountRepository
     {
         private readonly IUnitOfWork _unitOfWork;
-        public UserAccountRepository(OzbekBankDbContext context,IUnitOfWork unitOfWork) : base(context)
+        public UserAccountRepository(OzbekBankDbContext context, IUnitOfWork unitOfWork) : base(context)
         {
             _unitOfWork = unitOfWork;
         }
 
         public ServiceResponse Deposit(WithdrawDepositDto model)
         {
+            if (model.Amount < 0)
+                return ServiceResponse.Failed("Geçersiz tutar girdiniz.");
+
             var userAccount = _context.UserAccounts.FirstOrDefault(x => x.UserId == model.UserId & x.AccountTypeId == model.AccountType);
             if (userAccount == null)
                 return ServiceResponse.Failed("Kullanıcı hesabı bulunamadı.");
-
-            if (model.Amount < 0)
-                return ServiceResponse.Failed("Geçersiz tutar girdiniz.");
 
             userAccount.Balance = userAccount.Balance + model.Amount;
             _unitOfWork.Commit();
@@ -35,12 +35,16 @@ namespace Ozbek.Bank.Repository.Repositories
 
         public ServiceResponse Withdraw(WithdrawDepositDto model)
         {
+            if (model.Amount < 0)
+                return ServiceResponse.Failed("Geçersiz tutar girdiniz.");
+
             var userAccount = _context.UserAccounts.FirstOrDefault(x => x.UserId == model.UserId & x.AccountTypeId == model.AccountType);
             if (userAccount == null)
                 return ServiceResponse.Failed("Kullanıcı hesabı bulunamadı.");
 
             if (userAccount.Balance - model.Amount < 0)
                 return ServiceResponse.Failed("Yetersiz Bakiye");
+
 
             userAccount.Balance = userAccount.Balance - model.Amount;
             _unitOfWork.Commit();
