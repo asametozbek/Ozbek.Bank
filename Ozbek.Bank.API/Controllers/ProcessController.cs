@@ -34,7 +34,8 @@ namespace Ozbek.Bank.API.Controllers
         [HttpPost("deposit")]
         public async Task<IActionResult> Deposit([FromBody] WithdrawDepositDto model)
         {
-            model.UserId = 1;
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            model.UserId = Convert.ToInt32(identity.FindFirst("UserId").Value);
             return Ok(_userAccountRepository.Deposit(model));
 
 
